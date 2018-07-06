@@ -6,7 +6,7 @@ my $file_name,
 my $root_dir_name;
 my $fileCall = "CALL.csv";
 my $fileUsr = "USR.csv";
-my $fileSCall = "SCALL.csv";
+my $fileSCall = "SCALL.csv"; 
 
 die "Ошибка открытия файла $fileCall" unless open my $FH_Call, ">", $fileCall; 
 die "Ошибка открытия файла $fileUsr" unless open my $FH_Usr, ">", $fileUsr; 

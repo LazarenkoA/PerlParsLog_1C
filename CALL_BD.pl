@@ -4,6 +4,9 @@
 	#use warnings;
 	use Data::Dumper;     
 	
+    
+
+
     my %actions = (
         'CALL' => [
  
@@ -46,9 +49,9 @@
                                 $context =~ s/\n/<end_line>/g;
                                 $context =~ s/\s//g;
                                 $context =~ s/<end_line>/\n/g;
-
                                 #print "$context \n\n";
 								my $result = "$duration-$context" if $context;
+                                
                         }
 
                     }
@@ -72,10 +75,15 @@
 
     
 	my %resultHash;  
+    my %value; 
     my $Condition = qr(CALL[-](.+));
     foreach(grep(/$Condition/s, @Buffer)) {
         $resultHash{$2} += $1 if /^[\D]+[-](\d+)-(.+)/s; 
+        # $value{CommonD} += $1 if /^[\D]+[-](\d+)-(.+)/s; 
+        # $resultHash{$2} = \%value;
     }
+
+
     # Пересобираем буфер, что бы в нем не было учтенных элементов
     @Buffer = grep(!/$Condition/s, @Buffer);
 
@@ -92,12 +100,12 @@
     
     # То что осталось в @Buffer это запросы к БД которые не были учтены в CALL
     # Для катих элементов, добавляем в хеш по последней строки стека
-    # {
-    #     print "==== Остаток ====\n";
-    #     $" = "\n";
-    #     print @Buffer;
-    #     print "=====================\n\n";
-    # }
+    {
+        print "==== Остаток ====\n";
+        $" = "\n";
+        print @Buffer;
+        print "=====================\n\n";
+    }
     # foreach(@Buffer)  {
         
     #     my @break = split("\n", $_);
