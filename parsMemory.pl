@@ -17,7 +17,7 @@ my $fileSCall = "SCALL.csv";
 #die "Ошибка открытия файла $fileCall" unless open my $FH_Call, ">:encoding(cp1251)", $fileCall; 
 die "Ошибка открытия файла $fileCall" unless open my $FH_Call, ">", $fileCall; 
 die "Ошибка открытия файла $fileUsr" unless open my $FH_Usr, ">:encoding(cp1251)", $fileUsr; 
-die "Ошибка открытия файла $fileSCall" unless open my $FH_SCall, ">", $fileSCall; 
+die "Ошибка открытия файла $fileSCall" unless open my $FH_SCall, ">:encoding(cp1251)", $fileSCall; 
 
 
 #while (defined(my $file = glob '*/rmng*/*.log')) {
@@ -27,9 +27,9 @@ while (defined(my $file = glob '*/rphost*/*.log')) {
     
     die "Ошибка открытия файла $file" unless open my $FH, "<", $file; 
     while(<$FH>) {
-        ParsLineCall($_, $file_name, $FH_Call) if (/^\d\d:\d\d\.\d+(.+?),CALL/) ;
-        ParsLineSCall($_, $file_name, $root_dir_name, $FH_SCall) if (/^\d\d:\d\d\.\d+(.+?),SCALL/) ;
-        ParsLineUsr($_, $root_dir_name, $FH_Usr); # if (/^\d\d:\d\d\.\d+(.+?),CALL/) ;
+        ParsLineCall($_, $file_name, $FH_Call) if (/^\d\d:\d\d\.\d+(.+?),CALL/) and not (/ISeanceContextStorage/);
+        ParsLineSCall($_, $file_name, $root_dir_name, $FH_SCall) if (/^\d\d:\d\d\.\d+(.+?),SCALL/) and not (/ISeanceContextStorage/);
+        ParsLineUsr($_, $file_name, $root_dir_name, $FH_Usr) if (/^\d\d:\d\d\.\d+(.+?),CONN/) ;
     }
 
     
@@ -42,33 +42,39 @@ close $FH_Usr;
 sub ParsLineCall($) {
     my ($line, $file_name, $FH) = @_;
     my $CallID;
-    my $InBytes;
+    my $Memory;
+    my $Duration;
+    #my $Module;
+    #my $Method;
 
-
-    $CallID = $2 if $line =~ /(.+?)CallID=([\d]+)/;
-    $InBytes = $2 if $line =~ /(.+?)InBytes=([\d]+)/;
-
-    print $FH "$file_name;$CallID;$InBytes\n" if $CallID and $InBytes > 0;
+    ($Duration, $CallID, $Memory) = ($1, $3, $5) if $line =~ /\d\d:\d\d\.\d+[-](\d+)(.+?)CallID=([\d]+)(.+?)Memory=([\d]+)/;
+    print $FH "$file_name;$CallID;$Memory;$Duration\n" if $CallID and $Memory > 0;
 }   
 
 sub ParsLineSCall($) {
     my ($line, $file_name, $root_dir_name, $FH) = @_;
     my $CallID;
     my $clientID;
+    my $Context;
 
-    $CallID = $2 if $line =~ /(.+?)CallID=([\d]+)/;
-    $clientID = $2 if $line =~ /(.+?)t:clientID=([\d]+)/;
+    $CallID = $1 if $line =~ /CallID=([\d]+)/;
+    $clientID = $1 if $line =~ /t:clientID=([\d]+)/;
+    $Context = $1 if $line =~ /Context=([^']+)/;
+    
+    # Из контекста убираем пробелы и переносы строк.
+    $Context =~ s/\n//g;
+    $Context =~ s/\s//g;
 
-    print $FH "$root_dir_name;$file_name;$clientID;$CallID\n" if $CallID;
+    print $FH decode("utf8", "$root_dir_name;$file_name;$clientID;$CallID\n") if $CallID;
 }   
 
 sub ParsLineUsr($) {
-    my ($line, $root_dir_name, $FH) = @_;
+    my ($line, $file_name, $root_dir_name, $FH) = @_; 
     my $clientID;
     my $Usr;
 
     $clientID = $2 if $line =~ /(.+?)t:clientID=([\d]+)/;
     $Usr = $2 if $line =~ /(.+?)Usr=([^,]+)/;
 
-    print $FH decode("utf8", "$root_dir_name;$clientID;$Usr\n") if $Usr;
+    print $FH decode("utf8", "$root_dir_name;$clientID;$Usr;$file_name\n") if $Usr;
 } 
