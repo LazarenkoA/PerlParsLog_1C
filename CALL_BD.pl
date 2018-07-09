@@ -114,7 +114,7 @@
 
     # Выводим отсортированные (по убыванию) данные. Сортировка по значениею хеша
     foreach my $tmp (sort {$resultHash{$b} <=> $resultHash{$a}} keys %resultHash) {
-        # duration для 8.3 это иллионные доли секунды
+        # duration для 8.3 это миллионные доли секунды
         print "$tmp - $resultHash{$tmp} (~". sprintf("%.2f", $resultHash{$tmp}/1000000). " сек.) \n";
 	}
 
