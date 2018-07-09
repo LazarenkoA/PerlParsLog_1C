@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 use strict;
+use Encode;
+#use encoding 'cp1251';
+#use Encode::Locale;
 #use autodie;  # automatic error handling  
 
 my $file_name, 
@@ -8,8 +11,12 @@ my $fileCall = "CALL.csv";
 my $fileUsr = "USR.csv";
 my $fileSCall = "SCALL.csv"; 
 
+#binmode(STDOUT,':cp1251');
+#binmode(STDOUT,':utf8');
+
+#die "Ошибка открытия файла $fileCall" unless open my $FH_Call, ">:encoding(cp1251)", $fileCall; 
 die "Ошибка открытия файла $fileCall" unless open my $FH_Call, ">", $fileCall; 
-die "Ошибка открытия файла $fileUsr" unless open my $FH_Usr, ">", $fileUsr; 
+die "Ошибка открытия файла $fileUsr" unless open my $FH_Usr, ">:encoding(cp1251)", $fileUsr; 
 die "Ошибка открытия файла $fileSCall" unless open my $FH_SCall, ">", $fileSCall; 
 
 
@@ -63,5 +70,5 @@ sub ParsLineUsr($) {
     $clientID = $2 if $line =~ /(.+?)t:clientID=([\d]+)/;
     $Usr = $2 if $line =~ /(.+?)Usr=([^,]+)/;
 
-    print $FH "$root_dir_name;$clientID;$Usr\n" if $Usr;
+    print $FH decode("utf8", "$root_dir_name;$clientID;$Usr\n") if $Usr;
 } 
