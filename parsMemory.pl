@@ -59,7 +59,7 @@ sub ParsLineSCall($) {
     $CallID = $2 if $line =~ /(.+?)CallID=([\d]+)/;
     $clientID = $2 if $line =~ /(.+?)t:clientID=([\d]+)/;
 
-    print $FH "$root_dir_name;$file_name;$clientID;$CallID\n";
+    print $FH "$root_dir_name;$file_name;$clientID;$CallID\n" if $CallID;
 }   
 
 sub ParsLineUsr($) {
