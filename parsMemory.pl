@@ -29,7 +29,7 @@ while (defined(my $file = glob '*/rphost*/*.log')) {
     while(<$FH>) {
         ParsLineCall($_, $file_name, $FH_Call) if (/^\d\d:\d\d\.\d+(.+?),CALL/) ;
         ParsLineSCall($_, $file_name, $root_dir_name, $FH_SCall) if (/^\d\d:\d\d\.\d+(.+?),SCALL/) ;
-        ParsLineUsr($_, $file_name, $FH_Usr); # if (/^\d\d:\d\d\.\d+(.+?),CALL/) ;
+        ParsLineUsr($_, $root_dir_name, $FH_Usr); # if (/^\d\d:\d\d\.\d+(.+?),CALL/) ;
     }
 
     
