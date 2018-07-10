@@ -11,6 +11,8 @@ my %Hash;
 my $top;
 my $SortByMem = 0;
 
+print localtime ."\n\n";
+
 InitializationParams();
 
 while (<STDIN>) {
@@ -38,6 +40,8 @@ foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
     }
    $index++;
 }
+
+print "\n\n" . localtime;
 
 sub ParsLine() {
     my ($line) = @_;
