@@ -13,10 +13,6 @@ my $SortByMem = 0;
 
 InitializationParams();
 
-#print $SortByMem;
-
-#exit;
-
 while (<STDIN>) {
     ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL(.+?)Context/);
 } continue {
@@ -25,24 +21,35 @@ while (<STDIN>) {
 
 my $index = 1;
  # Выводим отсортированные (по убыванию) данные. Сортировка по значениею хеша
-foreach my $Key (sort {$Hash{$b} <=> $Hash{$a}} keys %Hash) {
+foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
     last if $top eq $index;
-    
+
+    my $ValueKb = sprintf("%.2f", $Hash{$Key}{Value} / 1024);    
+    my $ValueMb = sprintf("%.2f", $Hash{$Key}{Value} / 1024**2);   
+    my $AvValueKb = sprintf("%.2f", ($Hash{$Key}{Value} / 1024) / $Hash{$Key}{Count});   
+    my $ValueSec = sprintf("%.2f", $Hash{$Key}{Value} / 1000000);   
+    my $ValueMin = sprintf("%.2f", $Hash{$Key}{Value} / 1000000 / 60);   
+
     # duration для 8.3 это миллионные доли секунды
     if(not $SortByMem) {
-        print "$Key" . " - ~". sprintf("%.2f", $Hash{$Key} / 1000000). " сек., ~" .sprintf("%.2f", $Hash{$Key} / 1000000 / 60) . " мин. \n";
+        print "$Key" . " - ~ $ValueSec сек., ~ $ValueMin мин. \n";
     } else {
-        print "$Key" . " - ~". sprintf("%.2f", $Hash{$Key} / 1024). " Kb., ~" .sprintf("%.2f", $Hash{$Key} / 1024**2) . " Mb. \n";
+        print "$Key" . " - ~ $ValueKb Kb., ~$ValueMb Mb. (вызов $Hash{$Key}{Count} раз, среднее значение за вызов $AvValueKb Kb.) \n";
     }
-    $index++;
+   $index++;
 }
 
 sub ParsLine() {
     my ($line) = @_;
     
+    #my %tmp = GetHashFromLine($line);
     my %tmp = GetHashFromLine($line);
+    
     while(my($k, $v) = each(%tmp)) {
-        $Hash{$k} += $v;
+       $Hash{$k}{Count} += $$v{Count};
+       $Hash{$k}{Value} += $$v{Value};
+
+       #print "$$v{Value}\n";
     }
   }
 
@@ -58,7 +65,14 @@ sub GetHashFromLine($) {
     $Context =~ s/\n//g;
     $Context =~ s/\s//g;
 
-    $Hash{$Context} += $1 if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-]([\d]+)/) or ($SortByMem and $line =~ /Memory=([\d]+)/);
+    return unless $Context; # Выходим если контекста нет, накой нам эти строки.
+
+    my $Value = $1 if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-]([\d]+)/) or ($SortByMem and $line =~ /Memory=([-]?[\d]+)/);
+    $Hash{$Context} = {
+        Count => 1,
+        Value => $Value
+    };
+
     return %Hash;
   }
 
