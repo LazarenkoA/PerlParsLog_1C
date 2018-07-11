@@ -84,7 +84,7 @@ sub GetHashFromLine($) {
     $Context =~ s/\s//g;
     $Context =~ s/[']//g;
 
-    my $Key = $Context;
+    my $Key = "[$DB] $Context";
     $Key = $DB if $GroupByDB;
     return unless $Context; # Выходим если контекста нет, накой нам эти строки.
 
