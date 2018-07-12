@@ -6,25 +6,17 @@ use Time::HiRes qw(gettimeofday tv_interval);
 #use encoding 'cp1251';
 #use Encode::Locale;
 #use autodie;  # automatic error handling  
-use POSIX qw(strftime);
+use Benchmark; # Для замера выполнения кода
 
 
 my %Hash;
 my $top;
 my $SortByMem = 0;
 my $GroupByDB = 0;
-my $start_time = [gettimeofday];
+my $start_time = Benchmark->new;
 InitializationParams();
 #Time::HiRes::usleep(100000);
-#print localtime();
 
-my $end_time = [gettimeofday];
-my $delta = tv_interval($start_time, $end_time);
-my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = gmtime($delta);
-#print  $delta;
-
-
-#exit;
 
 while (<STDIN>) {
     ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL(.+?)Context/);
@@ -53,7 +45,9 @@ foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
    $index++;
 }
 
-#print "\n\nВремя выполнение скрипта:\n" . strftime("%S", localtime - $Timestart ) . " сек.";
+my $end_time = Benchmark->new;
+my $delta = timediff($end_time, $start_time);
+print "\n\nВремя выполнение скрипта:\n" . timestr($delta);
 
 sub ParsLine() {
     my ($line) = @_;
