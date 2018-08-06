@@ -11,7 +11,6 @@ use Benchmark; # Для замера выполнения кода
 
 my %Hash;
 my $top;
-my $SortByMem = 0;
 my $GroupByDB = 0;
 my $start_time = Benchmark->new;
 InitializationParams();
@@ -19,7 +18,7 @@ InitializationParams();
 
 
 while (<STDIN>) {
-    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL(.+?)Context/);
+    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),SDBL(.+?)Context/);
 } continue {
     close ARGV if eof;  # Not eof()!
 }
@@ -28,20 +27,14 @@ my $index = 1;
  # Выводим отсортированные (по убыванию) данные. Сортировка по значениею хеша
 foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
     last if $top eq $index;
-
-    my $ValueKb = sprintf("%.2f", $Hash{$Key}{Value} / 1024);    
-    my $ValueMb = sprintf("%.2f", $Hash{$Key}{Value} / 1024**2);   
-    my $AvValueKb = sprintf("%.2f", ($Hash{$Key}{Value} / 1024) / $Hash{$Key}{Count});   
+ 
     my $ValueSec = sprintf("%.2f", $Hash{$Key}{Value} / 1000000);   
     my $AvValueSec = sprintf("%.2f", ($Hash{$Key}{Value} / 1000000) / $Hash{$Key}{Count});   
     my $ValueMin = sprintf("%.2f", $Hash{$Key}{Value} / 1000000 / 60);   
 
     # duration для 8.3 это миллионные доли секунды
-    if(not $SortByMem) {
-        print "$Key" . " - ~ $ValueSec сек., ~ $ValueMin мин. (вызов $Hash{$Key}{Count} раз, среднее значение за вызов $AvValueSec сек.)\n";
-    } else {
-        print "$Key" . " - ~ $ValueKb Kb., ~$ValueMb Mb. (вызов $Hash{$Key}{Count} раз, среднее значение за вызов $AvValueKb Kb.) \n";
-    }
+    print "$Key" . " - ~ $ValueSec сек., ~ $ValueMin мин. (вызов $Hash{$Key}{Count} раз, среднее значение за вызов $AvValueSec сек.)\n";
+   
    $index++;
 }
 
@@ -82,7 +75,7 @@ sub GetHashFromLine($) {
     $Key = $DB if $GroupByDB;
     return unless $Context; # Выходим если контекста нет, накой нам эти строки.
 
-    my $Value = $1 if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-]([\d]+)/) or ($SortByMem and $line =~ /Memory=([-]?[\d]+)/);
+    my $Value = $1 if $line =~ /^[\d]+:[\d]+\.[\d]+[-]([\d]+)/;
     $Hash{$Key} = {
         Count => 1,
         Value => $Value
@@ -94,7 +87,6 @@ sub GetHashFromLine($) {
   sub InitializationParams() {
       foreach (@ARGV) {
         $top = $1 if /top([\d]+)/;
-        $SortByMem = uc($_) eq uc("SortByMem") if not $SortByMem;
         $GroupByDB = uc($_) eq uc("GroupByDB") if not $GroupByDB;
       }
   }
