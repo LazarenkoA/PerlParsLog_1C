@@ -24,7 +24,7 @@
                     }
 
         ],
-        'DBMSSQL' => [ 
+        'SDBL' => [ 
 
                     {
 
@@ -87,9 +87,9 @@
     # Пересобираем буфер, что бы в нем не было учтенных элементов
     @Buffer = grep(!/$Condition/s, @Buffer);
 
-    # C DBMSSQL все сложнее, т.к. строк много, нам нужно знать по какой стоит мунусовать CALL, а по какой нет 
+    # C SDBL все сложнее, т.к. строк много, нам нужно знать по какой стоит мунусовать CALL, а по какой нет 
     foreach my $key (keys %resultHash) {
-        my $Condition = qr(DBMSSQL[-]([\d]+)[-](.*?)$key(.*?));
+        my $Condition = qr(SDBL[-]([\d]+)[-](.*?)$key(.*?));
         my @SelectRow = grep(/$Condition/s, @Buffer);
         foreach(@SelectRow) {
             $resultHash{$key} -= $1 if /^[\D]+[-](\d+)/; 
@@ -129,7 +129,7 @@
         foreach my $event_type ( keys %actions ) {
 
 		#print "$event_type - 1 \n";
-                next if not $Block =~ /^[^,]+,$event_type,/; # /^[^,]+,DBMSSQL,/
+                next if not $Block =~ /^[^,]+,$event_type,/; # /^[^,]+,SDBL,/
 
                 #print "$event_type - 2 \n";
                 #print Dumper ( @{ $actions{$event_type} });
