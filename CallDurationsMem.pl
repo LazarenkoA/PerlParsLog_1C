@@ -18,12 +18,12 @@ my $start_time = Benchmark->new;
 InitializationParams();
 #Time::HiRes::usleep(100000);
 
-
 while (<STDIN>) {
     ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL(.+?)Context/);
 } continue {
     close ARGV if eof;  # Not eof()!
 }
+
 
 my $index = 1;
  # Выводим отсортированные (по убыванию) данные. Сортировка по значениею хеша
@@ -47,8 +47,8 @@ foreach my $Key (sort sort_func keys %Hash) {
 }
 
 sub sort_func {
-    ($Hash{$b}{Value} / $Hash{$b}{Count}) <=> ($Hash{$a}{Value} / $Hash{$a}{Count}) and $SortByOneCall
-    || $Hash{$b}{Value} <=> $Hash{$a}{Value} and not $SortByOneCall
+    ($SortByOneCall and ($Hash{$b}{Value} / $Hash{$b}{Count}) <=> ($Hash{$a}{Value} / $Hash{$a}{Count}))
+    || (not $SortByOneCall and $Hash{$b}{Value} <=> $Hash{$a}{Value})
 }
 
 my $end_time = Benchmark->new;
