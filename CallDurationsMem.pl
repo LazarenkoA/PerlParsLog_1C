@@ -13,6 +13,7 @@ my %Hash;
 my $top;
 my $SortByMem = 0;
 my $GroupByDB = 0;
+my $SortByOneCall = 0;
 my $start_time = Benchmark->new;
 InitializationParams();
 #Time::HiRes::usleep(100000);
@@ -26,7 +27,7 @@ while (<STDIN>) {
 
 my $index = 1;
  # Выводим отсортированные (по убыванию) данные. Сортировка по значениею хеша
-foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
+foreach my $Key (sort sort_func keys %Hash) {
     last if $top eq $index;
 
     my $ValueKb = sprintf("%.2f", $Hash{$Key}{Value} / 1024);    
@@ -43,6 +44,11 @@ foreach my $Key (sort {$Hash{$b}{Value} <=> $Hash{$a}{Value}} keys %Hash) {
         print "$Key" . " - ~ $ValueKb Kb., ~$ValueMb Mb. (вызов $Hash{$Key}{Count} раз, среднее значение за вызов $AvValueKb Kb.) \n";
     }
    $index++;
+}
+
+sub sort_func {
+    ($Hash{$b}{Value} / $Hash{$b}{Count}) <=> ($Hash{$a}{Value} / $Hash{$a}{Count}) and $SortByOneCall
+    || $Hash{$b}{Value} <=> $Hash{$a}{Value} and not $SortByOneCall
 }
 
 my $end_time = Benchmark->new;
@@ -95,6 +101,7 @@ sub GetHashFromLine($) {
       foreach (@ARGV) {
         $top = $1 if /top([\d]+)/;
         $SortByMem = uc($_) eq uc("SortByMem") if not $SortByMem;
+        $SortByOneCall = uc($_) eq uc("SortByOneCall") if not $SortByOneCall;
         $GroupByDB = uc($_) eq uc("GroupByDB") if not $GroupByDB;
       }
   }
