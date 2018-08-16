@@ -32,6 +32,7 @@ while (defined(my $file = glob '*/rphost*/*.log')) {
         ParsLineUsr($_, $file_name, $root_dir_name, $FH_Usr) if (/^\d\d:\d\d\.\d+(.+?),CONN/) ;
     }
 
+    close $FH;
     
 }
   
