@@ -18,7 +18,7 @@ InitializationParams();
 
 
 while (<STDIN>) {
-    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),SDBL(.+?)Context/);
+    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),DBMSSQL(.+?)Context/); # или SDBL
 } continue {
     close ARGV if eof;  # Not eof()!
 }
