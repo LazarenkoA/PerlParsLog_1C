@@ -7,6 +7,8 @@ use Time::HiRes qw(gettimeofday tv_interval);
 #use Encode::Locale;
 #use autodie;  # automatic error handling  
 use Benchmark; # Для замера выполнения кода
+use XML::Simple;
+use 5.016;
 
 
 my %Hash;
@@ -19,7 +21,7 @@ InitializationParams();
 #Time::HiRes::usleep(100000);
 
 while (<STDIN>) {
-    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL(.+?)Context/);
+    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL/);
 } continue {
     close ARGV if eof;  # Not eof()!
 }
@@ -74,12 +76,11 @@ sub GetHashFromLine($) {
    # my $Context;
     my %Hash;
 
-    my($DB, $Context) = ($1, $3) if $line =~ /p:processName=([^,]+)(.+?)Context=([^,]+)/; 
+    my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)Context=(?<Context>[^,]+)/;
+    my($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
+    ($DB, $Context) = ($+{DB}, "$+{Module}.$+{Method}") if !$matching and $line =~ /p:processName=(?<DB>[^,]+)(.+?)Module=(?<Module>[^,]+)(?:.+?)Method=(?<Method>[^,]+)/; # Если контекста нет берем имя модуля и метода
 
-    #print $DB if $GroupByDB;
-
-    # Из контекста убираем пробелы и переносы строк.
-    # Context может быть орамлен '', убираем и их
+    # Из контекста убираем пробелы и переносы строк + Context может быть обрамлен '', убираем и их
     $Context =~ s/\n//g;
     $Context =~ s/\s//g;
     $Context =~ s/[']//g;
@@ -88,7 +89,7 @@ sub GetHashFromLine($) {
     $Key = $DB if $GroupByDB;
     return unless $Context; # Выходим если контекста нет, накой нам эти строки.
 
-    my $Value = $1 if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-]([\d]+)/) or ($SortByMem and $line =~ /Memory=([-]?[\d]+)/);
+    my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)/) or ($SortByMem and $line =~ /Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
     $Hash{$Key} = {
         Count => 1,
         Value => $Value
