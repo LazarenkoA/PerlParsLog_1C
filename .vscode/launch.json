@@ -4,6 +4,7 @@
     // Для получения дополнительной информации посетите: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        
         {
             "type": "perl",
             "request": "launch",
@@ -11,7 +12,7 @@
             "program": "${workspaceFolder}/${relativeFile}",
             "exec": "perl",
             "execArgs": [],
-            "root": "${workspaceRoot}/",
+            "root": "D:/SVN/Расширения 1С/ФункцииРасширения", //"${workspaceRoot}/",
             "inc": [],
             "args": [],
             "env": {},
