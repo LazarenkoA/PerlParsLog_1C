@@ -34,18 +34,25 @@ sub wanted {
 }
 
 #while (<STDIN>) {
-#    ParsLine($_) if (/^\d\d:\d\d\.\d+(.+?),CALL/);
+#    ParsLine($_);
 #} continue {
 #    close ARGV if eof;  # Not eof()!
 #}
 
 sub ParsFile() {
     my $fileName = shift;
+
+    #my $pid = fork(); # or die "Не удалось форкнуть";
+    #if ($pid) {
+        # Родитель
+    #    return;
+    #} 
+
     open(my $FH, "<:encoding(utf8)", $fileName) or die "Ошибка открытия файла $fileName\n$!";
 
     my $txt;
     {
-        local $/ = "\r";
+        local $/;
         $txt = <$FH>;
     } 
     close $FH;
@@ -53,7 +60,7 @@ sub ParsFile() {
     my @events = ("CALL", "DBMSSQL");
 
     local $" = "|";
-    foreach($txt =~ /(^\d\d:\d\d\.\d+[-]\d+,(?|@events)(?:.*?)(?|Method[^,]+|Context=([^'][^,]+)|Context='([^']+)).*?$)/gsm) {
+    foreach($txt =~ /(^\d\d:\d\d\.\d+[-]\d+,(?|@events)(?:.*?)(?=\d\d:\d\d\.\d+))/gsm) {
        ParsLine($_);
     }
 }
@@ -130,7 +137,7 @@ sub GetHashValueFromLine($) {
    
    $HashName{$Key} = $KeySource;
 
-    my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
+    my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?:[\d]+)[,](?<event>[^,]+).*?Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
     $HashValue{$Key} = {
         Count => 1,
         Value => {$+{event} => $Value}
