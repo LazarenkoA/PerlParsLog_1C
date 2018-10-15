@@ -137,7 +137,7 @@ sub GetHashValueFromLine($) {
    
    $HashName{$Key} = $KeySource;
 
-    my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?:[\d]+)[,](?<event>[^,]+).*?Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
+    my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
     $HashValue{$Key} = {
         Count => 1,
         Value => {$+{event} => $Value}
