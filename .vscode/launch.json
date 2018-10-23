@@ -6,13 +6,39 @@
     "configurations": [
         
         {
+            "name": "Launch Package",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceRoot}"
+        },
+        {
+            "name": "Connect to server",
+            "type": "go",
+            "request": "launch",
+            "mode": "remote",
+            "remotePath": "${workspaceRoot}",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceRoot}",
+            "env": {},
+            "args": []
+        },
+    {
+        "name": "Launch Package",
+        "type": "go",
+        "request": "launch",
+        "mode": "debug",
+        "program": "${workspaceRoot}"
+    },
+        {
             "type": "perl",
             "request": "launch",
             "name": "Perl-Debug local",
             "program": "${workspaceFolder}/${relativeFile}",
             "exec": "perl",
             "execArgs": [],
-            "root": "D:/SVN/Расширения 1С/ФункцииРасширения", //"${workspaceRoot}/",
+            "root": "${workspaceRoot}",  //"D:/Конфигурация",
             "inc": [],
             "args": [],
             "env": {},
