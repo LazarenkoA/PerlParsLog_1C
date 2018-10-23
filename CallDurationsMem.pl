@@ -42,15 +42,15 @@ InitializationParams();
 my @buf;
 while(<STDIN>) {
     if (/[\d]+:[\d]+\.[\d]+[-][\d]+/) {
-        push(@buf, $_);
         ParsLine(join(@buf, "\n"));
+        
+        undef @buf;
+        push(@buf, $_);
     } else {
         push(@buf, $_);
     }
-    ParsLine(join(@buf, "\n"));
-      
 }
-
+ParsLine(join(@buf, "\n"));
 
 sub ParsFile() {
     my $fileName = shift;
