@@ -28,16 +28,29 @@ my @directories_to_search = (getcwd); # Текущая директория.
 InitializationParams();
 #Time::HiRes::usleep(100000);
 
-find(\&wanted, @directories_to_search);
-sub wanted {
-    ParsFile($_) if /^[\w]+.log$/i;
-}
+#find(\&wanted, @directories_to_search);
+#sub wanted {
+#    ParsFile($_) if /^[\w]+.log$/i;
+#}
 
 #while (<STDIN>) {
 #    ParsLine($_);
 #} continue {
 #    close ARGV if eof;  # Not eof()!
 #}
+
+my @buf;
+while(<STDIN>) {
+    if (/[\d]+:[\d]+\.[\d]+[-][\d]+/) {
+        push(@buf, $_);
+        ParsLine(join(@buf, "\n"));
+    } else {
+        push(@buf, $_);
+    }
+    ParsLine(join(@buf, "\n"));
+      
+}
+
 
 sub ParsFile() {
     my $fileName = shift;
