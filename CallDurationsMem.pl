@@ -40,17 +40,18 @@ InitializationParams();
 #}
 
 my @buf;
+my $firstLine = 1;
 while(<STDIN>) {
-    if (/[\d]+:[\d]+\.[\d]+[-][\d]+/) {
-        ParsLine(join(@buf, "\n"));
-        
+    if (/[\d]+:[\d]+\.[\d]+[-][\d]+/ &&  not $firstLine) {
+        ParsLine(join("\n", @buf));
         undef @buf;
         push(@buf, $_);
     } else {
         push(@buf, $_);
+        $firstLine = 0 if $firstLine; 
     }
 }
-ParsLine(join(@buf, "\n"));
+ParsLine(join("\n", @buf));
 
 sub ParsFile() {
     my $fileName = shift;
@@ -138,7 +139,7 @@ sub GetHashValueFromLine($) {
     my %HashValue;
 
 # while($txt =~ /^\d\d:\d\d\.\d+[-]\d+,(?|@events)(?:.*?)(?|Method[^,]+|Context=([^'][^,]+)|Context='([^']+)).*?$/gm) {
-    my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)(?|Context=(?<Context>[^,]+)|Context='(?<Context>[^']+))/s;
+    my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)(?|Context=(?<Context>[^'][^,]+)|Context='(?<Context>[^']+))/s;
     my($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
     ($DB, $Context) = ($+{DB}, "$+{Module}.$+{Method}") if !$matching and $line =~ /p:processName=(?<DB>[^,]+)(.+?)Module=(?<Module>[^,]+)(?:.+?)Method=(?<Method>[^,]+)/; # Если контекста нет берем имя модуля и метода
 
@@ -151,6 +152,7 @@ sub GetHashValueFromLine($) {
    $HashName{$Key} = $KeySource;
 
     my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
+
     $HashValue{$Key} = {
         Count => 1,
         Value => {$+{event} => $Value}
