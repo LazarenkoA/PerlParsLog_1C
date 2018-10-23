@@ -144,11 +144,7 @@ sub GetHashValueFromLine($) {
 
 # while($txt =~ /^\d\d:\d\d\.\d+[-]\d+,(?|@events)(?:.*?)(?|Method[^,]+|Context=([^'][^,]+)|Context='([^']+)).*?$/gm) {
     my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)(?|Context=(?<Context>[^'][^,]+)|Context='(?<Context>[^']+))/s;
-<<<<<<< HEAD
     ($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
-=======
-    my($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
->>>>>>> 0baa19f73ba61048d7a8bd1f7ddfba5d4b7b8f09
     ($DB, $Context) = ($+{DB}, "$+{Module}.$+{Method}") if !$matching and $line =~ /p:processName=(?<DB>[^,]+)(.+?)Module=(?<Module>[^,]+)(?:.+?)Method=(?<Method>[^,]+)/; # Если контекста нет берем имя модуля и метода
 
     $Context = "$+{Process} $+{Context}" if not $Context and $line =~ /[,]EXCP,(?:.*?)process=(?<Process>[^,]+)(?:.*?)Descr=(?<Context>[^,]+)/;
