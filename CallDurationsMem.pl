@@ -40,17 +40,18 @@ InitializationParams();
 #}
 
 my @buf;
+my $firstLine = 1;
 while(<STDIN>) {
-    if (/[\d]+:[\d]+\.[\d]+[-][\d]+/) {
-        ParsLine(join(@buf, "\n"));
-        
+    if (/[\d]+:[\d]+\.[\d]+[-][\d]+/ &&  not $firstLine) {
+        ParsLine(join("\n", @buf));
         undef @buf;
         push(@buf, $_);
     } else {
         push(@buf, $_);
+        $firstLine = 0 if $firstLine; 
     }
 }
-ParsLine(join(@buf, "\n"));
+ParsLine(join("\n", @buf));
 
 sub ParsFile() {
     my $fileName = shift;
@@ -123,8 +124,11 @@ sub ParsLine() {
     while(my($k, $v) = each(%tmp)) {
        $HashValue{$k}{Count} += $$v{Count};
        map {
+           $HashValue{$k}{Value}{$_} = 0 unless defined $HashValue{$k}{Value}{$_};
+           $HashValue{$k}{Value}{Common} = 0 unless defined $HashValue{$k}{Value}{Common};
+
            $HashValue{$k}{Value}{$_} += $$v{Value}{$_};
-           $HashValue{$k}{Value}{Common} += $$v{Value}{$_}
+           $HashValue{$k}{Value}{Common} += $$v{Value}{$_};
        } keys %{$$v{Value}};
        #$HashValue{$k}{Value} += $$v{Value};
     }
@@ -134,14 +138,16 @@ sub GetHashValueFromLine($) {
     my ($line) = shift;
     return unless $line;
 
-   # my $Context;
+    my $Context = "";
+    my $DB = "";
     my %HashValue;
 
 # while($txt =~ /^\d\d:\d\d\.\d+[-]\d+,(?|@events)(?:.*?)(?|Method[^,]+|Context=([^'][^,]+)|Context='([^']+)).*?$/gm) {
-    my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)(?|Context=(?<Context>[^,]+)|Context='(?<Context>[^']+))/s;
-    my($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
+    my $matching = $line =~ /p:processName=(?<DB>[^,]+)(.+?)(?|Context=(?<Context>[^'][^,]+)|Context='(?<Context>[^']+))/s;
+    ($DB, $Context) = ($+{DB}, $+{Context}) if $matching; 
     ($DB, $Context) = ($+{DB}, "$+{Module}.$+{Method}") if !$matching and $line =~ /p:processName=(?<DB>[^,]+)(.+?)Module=(?<Module>[^,]+)(?:.+?)Method=(?<Method>[^,]+)/; # Если контекста нет берем имя модуля и метода
 
+    $Context = "$+{Process} $+{Context}" if not $Context and $line =~ /[,]EXCP,(?:.*?)process=(?<Process>[^,]+)(?:.*?)Descr=(?<Context>[^,]+)/;
     return unless $Context; # Выходим если контекста нет, накой нам эти строки.
 
     my $KeySource = "[$DB] $Context";
@@ -151,6 +157,7 @@ sub GetHashValueFromLine($) {
    $HashName{$Key} = $KeySource;
 
     my $Value = $+{Value} if (not $SortByMem and $line =~ /^[\d]+:[\d]+\.[\d]+[-](?<Value>[\d]+)[,](?<event>[^,]+)/) or ($SortByMem and $line =~ /Memory=(?<Value>[-]?[\d]+)/); #MemoryPeak
+
     $HashValue{$Key} = {
         Count => 1,
         Value => {$+{event} => $Value}
