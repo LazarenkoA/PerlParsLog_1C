@@ -22,14 +22,13 @@ die "Ошибка открытия файла $fileSCall" unless open my $FH_SCa
 
 #while (defined(my $file = glob 'rmng*/*.log')) {
 while (defined(my $file = glob 'rphost*/*.log')) {
-#while (defined(my $file = glob '*/*/*.log')) {
-    my ($file_name, $root_dir_name) = ($3, $2) if $file =~  /^(.*)(.+?)[\/](.*).log$/;
+    my ($file_name, $root_dir_name) = ($2, $1) if $file =~  /^(.+?)[\/](.*).log$/;
     
     die "Ошибка открытия файла $file" unless open my $FH, "<", $file; 
     while(<$FH>) {
         ParsLineCall($_, $file_name, $FH_Call) if (/^\d\d:\d\d\.\d+(.+?),CALL/);
         ParsLineSCall($_, $file_name, $root_dir_name, $FH_SCall) if (/^\d\d:\d\d\.\d+(.+?),SCALL/);
-        ParsLineUsr($_, $file_name, $root_dir_name, $FH_Usr) if (/^\d\d:\d\d\.\d+(.+?),CONN/) ;
+        ParsLineUsr($_, $root_dir_name, $FH_Usr) if (/^\d\d:\d\d\.\d+(.+?),CONN/);
     }
 
     close $FH;
@@ -42,34 +41,21 @@ close $FH_Usr;
   
 sub ParsLineCall($) {
     my ($line, $file_name, $FH) = @_;
-    my ($Duration, $CallID, $Memory) = ($1, $3, $5) if $line =~ /\d\d:\d\d\.\d+[-](\d+)(.+?)CallID=([\d]+)(.+?)Memory=([\d]+)/;
-    print $FH "$file_name;$CallID;$Memory;$Duration\n" if $CallID and $Memory > 0;
+    
+    my ($Duration, $CallID, $InBytes) = ($1, $2, $3) if $line =~ /\d\d:\d\d\.\d+[-](\d+)(?:.+?)CallID=([^,]+)(?:.+?)InBytes=([\d]+)/;
+    print $FH "$file_name;$CallID;$InBytes\n" if $CallID and $InBytes > 0;
 }   
 
 sub ParsLineSCall($) {
     my ($line, $file_name, $root_dir_name, $FH) = @_;
-    my $CallID;
-    my $clientID;
-    my $Context;
-
-    $CallID = $1 if $line =~ /CallID=([\d]+)/;
-    $clientID = $1 if $line =~ /t:clientID=([\d]+)/;
-    $Context = $1 if $line =~ /Context=([^']+)/;
-    
-    # Из контекста убираем пробелы и переносы строк.
-    $Context =~ s/\n//g;
-    $Context =~ s/\s//g;
+    my($clientID, $CallID) = ($1, $2) if $line =~ /t:clientID=([\d]+)(?:.+?)CallID=([^,]+)/;
 
     print $FH decode("utf8", "$root_dir_name;$file_name;$clientID;$CallID\n") if $CallID;
 }   
 
 sub ParsLineUsr($) {
-    my ($line, $file_name, $root_dir_name, $FH) = @_; 
-    my $clientID;
-    my $Usr;
-
-    $clientID = $2 if $line =~ /(.+?)t:clientID=([\d]+)/;
-    $Usr = $2 if $line =~ /(.+?)Usr=([^,]+)/;
-
-    print $FH decode("utf8", "$root_dir_name;$clientID;$Usr;$file_name\n") if $Usr;
+    my ($line, $root_dir_name, $FH) = @_; 
+    
+    my($clientID, $Usr) = ($1, $2) if $line =~ /(?:.+?)t:clientID=([\d]+)(?:.+?)Usr=([^,]+)/;
+    print $FH decode("utf8", "$root_dir_name;$clientID;$Usr\n") if $Usr;
 } 
