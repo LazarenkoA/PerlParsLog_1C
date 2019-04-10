@@ -20,7 +20,7 @@ die "Ошибка открытия файла $fileUsr" unless open my $FH_Usr, 
 die "Ошибка открытия файла $fileSCall" unless open my $FH_SCall, ">:encoding(cp1251)", $fileSCall; 
 
 
-#while (defined(my $file = glob 'rmng*/*.log')) {
+#while (defined(my $file = glob 'rmngr*/*.log')) {
 while (defined(my $file = glob 'rphost*/*.log')) {
     my ($file_name, $root_dir_name) = ($2, $1) if $file =~  /^(.+?)[\/](.*).log$/;
     
